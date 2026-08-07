@@ -2,8 +2,9 @@
 
 Composer package for **Laravel** storefronts → [EcomSolveBD](https://ecomsolvebd.com) (tracking collect + signed order webhooks).
 
-**Packagist:** `ecomsolvebd/laravel-tracker`  
-**Source:** https://github.com/dev-rasel-parvez/laravel-tracker
+**Packagist:** [ecomsolvebd/laravel-tracker](https://packagist.org/packages/ecomsolvebd/laravel-tracker)  
+**Source:** https://github.com/dev-rasel-parvez/laravel-tracker  
+**Latest:** `v1.0.1`
 
 ## Install
 
