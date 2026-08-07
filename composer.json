@@ -1,0 +1,46 @@
+{
+  "name": "ecomsolvebd/laravel-tracker",
+  "description": "EcomSolveBD tracking + signed order webhooks for Laravel storefronts",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "laravel",
+    "ecomsolvebd",
+    "tracking",
+    "ecommerce",
+    "meta",
+    "ga4",
+    "tiktok"
+  ],
+  "homepage": "https://ecomsolvebd.com/docs/integrations/laravel",
+  "support": {
+    "docs": "https://ecomsolvebd.com/docs/integrations/laravel",
+    "issues": "https://github.com/dev-rasel-parvez/laravel-tracker/issues",
+    "source": "https://github.com/dev-rasel-parvez/laravel-tracker"
+  },
+  "authors": [
+    {
+      "name": "EcomSolveBD",
+      "homepage": "https://ecomsolvebd.com"
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "illuminate/support": ">=9.0",
+    "illuminate/http": ">=9.0",
+    "illuminate/view": ">=9.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "EcomSolveBD\\LaravelTracker\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "EcomSolveBD\\LaravelTracker\\EcomSolveBdServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable"
+}
