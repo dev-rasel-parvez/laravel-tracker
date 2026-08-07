@@ -2,12 +2,14 @@
 @php
   $apiBase = rtrim((string) config('ecomsolvebd.api_base', 'https://api.ecomsolvebd.com'), '/');
   $merchantKey = (string) config('ecomsolvebd.merchant_key', '');
+  $deployEnv = trim((string) config('ecomsolvebd.deploy_env', ''));
 @endphp
 @if($merchantKey !== '')
 <script>
 (function () {
   var API = @json($apiBase);
   var KEY = @json($merchantKey);
+  var DEPLOY = @json($deployEnv);
   function vid() {
     try {
       var k = 'esb_vid';
@@ -33,19 +35,23 @@
       merchant_key: KEY,
     }, extra || {});
     var json = JSON.stringify(body);
+    var headers = {
+      'Content-Type': 'application/json',
+      'x-merchant-key': KEY,
+    };
+    if (DEPLOY) headers['x-fc-deploy-env'] = DEPLOY;
     try {
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(API + '/api/v1/tracking/collect', new Blob([json], { type: 'application/json' }));
-      } else {
-        fetch(API + '/api/v1/tracking/collect', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-merchant-key': KEY },
-          body: json,
-          keepalive: true,
-          credentials: 'omit',
-        });
-      }
+      // Prefer fetch so DevTools Network → Fetch/XHR shows the request (sendBeacon often hides there).
+      fetch(API + '/api/v1/tracking/collect', {
+        method: 'POST',
+        headers: headers,
+        body: json,
+        keepalive: true,
+        credentials: 'omit',
+        mode: 'cors',
+      }).catch(function () {});
     } catch (e) {}
+    return true;
   }
   window.esbTrack = send;
   send('page_view');
