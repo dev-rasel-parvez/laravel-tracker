@@ -1,15 +1,19 @@
-{{-- EcomSolveBD browser collect (Woo-parity: 6-char uid, utm, click_ids, first_touch, GA cookies). --}}
+{{-- EcomSolveBD browser collect (Woo-parity: first-party ladder + 6-char uid, utm, click_ids, first_touch, GA cookies). --}}
 @php
-  $apiBase = rtrim((string) config('ecomsolvebd.api_base', 'https://api.ecomsolvebd.com'), '/');
+  use EcomSolveBD\LaravelTracker\FirstParty;
+  $fp = FirstParty::browserEndpoints();
   $merchantKey = (string) config('ecomsolvebd.merchant_key', '');
   $deployEnv = trim((string) config('ecomsolvebd.deploy_env', ''));
+  $endpoint = (string) ($fp['endpoint'] ?? '');
+  $credentials = (string) ($fp['credentials'] ?? 'omit');
 @endphp
-@if($merchantKey !== '')
+@if($merchantKey !== '' && $endpoint !== '')
 <script>
 (function () {
-  var API = @json($apiBase);
+  var ENDPOINT = @json($endpoint);
   var KEY = @json($merchantKey);
   var DEPLOY = @json($deployEnv);
+  var CREDENTIALS = @json($credentials);
   var CHARSET = '0123456789abcdefghijklmnopqrstuvwxyz';
   var FT_KEY = 'esb_first_touch';
   var SESS_KEY = 'esb_sid';
@@ -236,12 +240,12 @@
     };
     if (DEPLOY) headers['x-fc-deploy-env'] = DEPLOY;
     try {
-      fetch(API + '/api/v1/tracking/collect', {
+      fetch(ENDPOINT, {
         method: 'POST',
         headers: headers,
         body: json,
         keepalive: true,
-        credentials: 'omit',
+        credentials: CREDENTIALS || 'omit',
         mode: 'cors',
       }).catch(function () {});
     } catch (e) {}

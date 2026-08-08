@@ -5,7 +5,7 @@ Composer package for **Laravel** storefronts → [EcomSolveBD](https://ecomsolve
 
 **Packagist:** [ecomsolvebd/laravel-tracker](https://packagist.org/packages/ecomsolvebd/laravel-tracker)  
 **Source:** https://github.com/dev-rasel-parvez/laravel-tracker  
-**Latest:** `v1.0.6`
+**Latest:** `v1.0.7`
 
 ## Install
 
@@ -27,9 +27,31 @@ ECOMSOLVEBD_API_BASE=https://api.ecomsolvebd.com
 ECOMSOLVEBD_MERCHANT_KEY=...
 ECOMSOLVEBD_WEBHOOK_SECRET=...
 ECOMSOLVEBD_GA4_MEASUREMENT_ID=G-XXXXXXXX
-# Optional staging dual-DB:
 # ECOMSOLVEBD_DEPLOY_ENV=staging
+
+# First-party (optional; default Auto + SaaS sync):
+# ECOMSOLVEBD_FIRST_PARTY_MODE=auto
+# ECOMSOLVEBD_TRACKING_HOSTNAME=tracking.yourstore.com
+# ECOMSOLVEBD_TRACKING_HOSTNAME_VERIFIED=false
+# ECOMSOLVEBD_FIRST_PARTY_SYNC=true
 ```
+
+## First-party tracking (v1.0.7+)
+
+Woo/Shopify parity ladder:
+
+| Mode | Browser collect |
+|------|-----------------|
+| **Auto** (default, DNS not verified) | Same-origin `POST /ecomsolvebd/collect` (store proxy) |
+| **Auto** / **Custom** after DNS verify | `https://tracking.yourdomain.com/api/v1/tracking/collect` |
+| Custom without verify | Direct `api.ecomsolvebd.com` fallback |
+
+1. Dashboard → Integrations → Laravel → **First-party tracking**
+2. Keep **Auto**, add CNAME `tracking.…` → `collect.ecomsolvebd.com`
+3. **Verify DNS now**
+4. Package pulls settings via `GET /api/v1/laravel/tracker-config` (cached)
+
+Also auto-registers `GET /ecomsolvebd/attribution-config`.
 
 ## Blade layout
 
@@ -179,13 +201,14 @@ Custom shops: publish config and edit `feeds.columns` / `product_url_pattern`, o
 
 ### Merchant checklist
 
-1. Package ≥ **v1.0.6** on the live Laravel site
+1. Package ≥ **v1.0.6** on the live Laravel site (first-party: ≥ **v1.0.7**)
 2. Open `https://yoursite.com/feed/products.xml` — should return XML
 3. Dashboard → Products → paste the four URLs (or catalog URL for SaaS sync)
 4. Meta / TikTok / Google: paste facebook / tiktok / google URLs into each platform’s catalog feed UI
 5. Cost fields (`buying_cost`, etc.) stay in SaaS only — feeds do **not** overwrite them (Woo parity)
+6. First-party: Integrations → Laravel → Auto + optional CNAME verify
 
-Merchant guide: https://ecomsolvebd.com/docs/integrations/laravel#product-feeds
+Merchant guide: https://ecomsolvebd.com/docs/integrations/laravel#product-feeds · https://ecomsolvebd.com/docs/integrations/laravel#first-party
 
 ## Docs
 

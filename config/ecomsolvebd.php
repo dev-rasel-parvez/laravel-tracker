@@ -20,6 +20,28 @@ return [
     /** Deploy env header for staging API dual-DB routing (optional). */
     'deploy_env' => (string) env('ECOMSOLVEBD_DEPLOY_ENV', ''),
 
+    /*
+    |--------------------------------------------------------------------------
+    | First-party tracking (Woo / Shopify / ESB parity)
+    |--------------------------------------------------------------------------
+    | Auto: same-origin POST /ecomsolvebd/collect until DNS is verified, then
+    | custom subdomain CNAME → collect.ecomsolvebd.com.
+    | Dashboard Integrations → Laravel can verify DNS; package syncs settings.
+    */
+    'first_party' => [
+        /** auto | custom */
+        'mode' => (string) env('ECOMSOLVEBD_FIRST_PARTY_MODE', 'auto'),
+        'subdomain_label' => (string) env('ECOMSOLVEBD_TRACKING_SUBDOMAIN_LABEL', 'tracking'),
+        'hostname' => (string) env('ECOMSOLVEBD_TRACKING_HOSTNAME', ''),
+        'hostname_verified' => filter_var(
+            env('ECOMSOLVEBD_TRACKING_HOSTNAME_VERIFIED', false),
+            FILTER_VALIDATE_BOOLEAN
+        ),
+        /** Pull mode/hostname/verified from SaaS (x-merchant-key). */
+        'sync_from_saas' => filter_var(env('ECOMSOLVEBD_FIRST_PARTY_SYNC', true), FILTER_VALIDATE_BOOLEAN),
+        'sync_ttl_seconds' => (int) env('ECOMSOLVEBD_FIRST_PARTY_SYNC_TTL', 60),
+    ],
+
     /**
      * Order event class names your app dispatches. Defaults are placeholders —
      * map to your domain events (e.g. App\Events\OrderPlaced).

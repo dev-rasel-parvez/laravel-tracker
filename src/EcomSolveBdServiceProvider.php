@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace EcomSolveBD\LaravelTracker;
 
 use EcomSolveBD\LaravelTracker\Feed\EloquentProductFeedProvider;
+use EcomSolveBD\LaravelTracker\Http\AttributionConfigProxyController;
+use EcomSolveBD\LaravelTracker\Http\CollectProxyController;
 use EcomSolveBD\LaravelTracker\Http\OrderStatusInboundController;
 use EcomSolveBD\LaravelTracker\Http\ProductFeedController;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -55,8 +58,20 @@ final class EcomSolveBdServiceProvider extends ServiceProvider
         });
 
         // No CSRF — HMAC verified inside controller (SaaS → storefront status push).
-        Route::post('/ecomsolvebd/order-status', OrderStatusInboundController::class)
+        $orderStatus = Route::post('/ecomsolvebd/order-status', OrderStatusInboundController::class)
             ->name('ecomsolvebd.order-status');
+        if (method_exists($orderStatus, 'withoutMiddleware')) {
+            $orderStatus->withoutMiddleware([VerifyCsrfToken::class]);
+        }
+
+        // First-party store proxy (Woo REST ingest parity) — browser → Laravel → SaaS.
+        $collectProxy = Route::post('/ecomsolvebd/collect', CollectProxyController::class)
+            ->name('ecomsolvebd.collect');
+        if (method_exists($collectProxy, 'withoutMiddleware')) {
+            $collectProxy->withoutMiddleware([VerifyCsrfToken::class]);
+        }
+        Route::get('/ecomsolvebd/attribution-config', AttributionConfigProxyController::class)
+            ->name('ecomsolvebd.attribution-config');
 
         // Public product feeds (Woo /feed/*.xml parity) — no auth; Cache-Control max-age=300.
         Route::get('/feed/{channel}.xml', ProductFeedController::class)
