@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace EcomSolveBD\LaravelTracker;
 
+use EcomSolveBD\LaravelTracker\Feed\EloquentProductFeedProvider;
 use EcomSolveBD\LaravelTracker\Http\OrderStatusInboundController;
+use EcomSolveBD\LaravelTracker\Http\ProductFeedController;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +34,8 @@ final class EcomSolveBdServiceProvider extends ServiceProvider
                 (string) config('ecomsolvebd.deploy_env'),
             );
         });
+
+        $this->app->singleton(EloquentProductFeedProvider::class);
     }
 
     public function boot(): void
@@ -53,6 +57,11 @@ final class EcomSolveBdServiceProvider extends ServiceProvider
         // No CSRF — HMAC verified inside controller (SaaS → storefront status push).
         Route::post('/ecomsolvebd/order-status', OrderStatusInboundController::class)
             ->name('ecomsolvebd.order-status');
+
+        // Public product feeds (Woo /feed/*.xml parity) — no auth; Cache-Control max-age=300.
+        Route::get('/feed/{channel}.xml', ProductFeedController::class)
+            ->where('channel', 'products|facebook|tiktok|google')
+            ->name('ecomsolvebd.product-feed');
 
         $events = config('ecomsolvebd.order_created_events', []);
         if (is_array($events)) {

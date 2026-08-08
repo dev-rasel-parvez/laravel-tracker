@@ -34,4 +34,65 @@ return [
 
     /** Column that stores the merchant-visible order number (e.g. ORD-…). */
     'order_number_column' => (string) env('ECOMSOLVEBD_ORDER_NUMBER_COLUMN', 'order_number'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Product feeds (Woo /feed/*.xml parity)
+    |--------------------------------------------------------------------------
+    | Public URLs (auto-registered by the package):
+    |   /feed/products.xml  — EcomSolveBD catalog sync
+    |   /feed/facebook.xml  — Meta Commerce Manager
+    |   /feed/tiktok.xml    — TikTok catalog
+    |   /feed/google.xml    — Google Merchant Center
+    |
+    | Cost fields are NOT emitted (Woo parity). SaaS preserves buying/packaging/
+    | extra cost columns when syncing from products.xml.
+    */
+    'feeds' => [
+        'enabled' => filter_var(env('ECOMSOLVEBD_FEEDS_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+
+        /** Optional custom ProductFeedProvider class FQCN. Empty = EloquentProductFeedProvider. */
+        'provider' => (string) env('ECOMSOLVEBD_FEED_PROVIDER', ''),
+
+        'currency' => strtoupper(substr((string) env('ECOMSOLVEBD_FEED_CURRENCY', 'BDT'), 0, 3)),
+        'brand' => (string) env('ECOMSOLVEBD_FEED_BRAND', ''),
+        'store_name' => (string) env('ECOMSOLVEBD_FEED_STORE_NAME', ''),
+
+        'product_model' => (string) env('ECOMSOLVEBD_PRODUCT_MODEL', 'App\\Models\\Product'),
+
+        /**
+         * Attribute / accessor map on the product model.
+         * Demo shop (laravel-ecommerce-bd): name, final_price, thumbnail_url, stock, slug, brand.
+         */
+        'columns' => [
+            'id' => (string) env('ECOMSOLVEBD_FEED_COL_ID', 'id'),
+            'title' => (string) env('ECOMSOLVEBD_FEED_COL_TITLE', 'name'),
+            'price' => (string) env('ECOMSOLVEBD_FEED_COL_PRICE', 'final_price'),
+            'sku' => (string) env('ECOMSOLVEBD_FEED_COL_SKU', 'sku'),
+            'image' => (string) env('ECOMSOLVEBD_FEED_COL_IMAGE', 'thumbnail_url'),
+            'stock_qty' => (string) env('ECOMSOLVEBD_FEED_COL_STOCK', 'stock'),
+            'in_stock' => (string) env('ECOMSOLVEBD_FEED_COL_IN_STOCK', ''),
+            'slug' => (string) env('ECOMSOLVEBD_FEED_COL_SLUG', 'slug'),
+            'brand' => (string) env('ECOMSOLVEBD_FEED_COL_BRAND', 'brand'),
+            'category' => (string) env('ECOMSOLVEBD_FEED_COL_CATEGORY', ''),
+        ],
+
+        /** Only include rows where active_column = active_value (empty column = no filter). */
+        'active_column' => (string) env('ECOMSOLVEBD_FEED_ACTIVE_COLUMN', 'is_active'),
+        'active_value' => filter_var(env('ECOMSOLVEBD_FEED_ACTIVE_VALUE', true), FILTER_VALIDATE_BOOLEAN),
+
+        /** Optional status column + allow-list (in addition to active_column). */
+        'status_column' => (string) env('ECOMSOLVEBD_FEED_STATUS_COLUMN', ''),
+        'published_statuses' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('ECOMSOLVEBD_FEED_PUBLISHED_STATUSES', 'published,active')),
+        ))),
+
+        /** BelongsTo / BelongsToMany relation name for category labels. */
+        'category_relation' => (string) env('ECOMSOLVEBD_FEED_CATEGORY_RELATION', 'category'),
+        'category_name_column' => (string) env('ECOMSOLVEBD_FEED_CATEGORY_NAME', 'name'),
+
+        /** Product PDP path — placeholders: {slug}, {id} */
+        'product_url_pattern' => (string) env('ECOMSOLVEBD_FEED_PRODUCT_URL', '/product/{slug}'),
+    ],
 ];
