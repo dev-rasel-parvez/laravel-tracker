@@ -82,8 +82,9 @@ final class OrderPayloadFactory
         }
 
         $visitor = self::str($order, ['tracking_user_id', 'visitor_key', 'esb_visitor_key'])
-            ?? (isset($_COOKIE['esb_vid']) && is_string($_COOKIE['esb_vid']) ? $_COOKIE['esb_vid'] : null)
-            ?? ('lv' . substr(hash('sha256', $id . ($email ?? '') . ($phone ?? '')), 0, 16));
+            ?? self::browserVisitorId()
+            // Underscore marks synthetic keys so Core never treats them as browser visitors.
+            ?? ('lv_' . substr(hash('sha256', $id . ($email ?? '') . ($phone ?? '')), 0, 14));
 
         $payload = [
             'currency' => $currency,
@@ -112,6 +113,30 @@ final class OrderPayloadFactory
             $payload,
             static fn ($v) => $v !== null && $v !== '',
         );
+    }
+
+    /**
+     * Read JS-set esb_vid even when Laravel EncryptCookies would drop request()->cookie().
+     */
+    private static function browserVisitorId(): ?string
+    {
+        $raw = null;
+        if (isset($_COOKIE['esb_vid']) && is_string($_COOKIE['esb_vid'])) {
+            $raw = $_COOKIE['esb_vid'];
+        }
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+        try {
+            $raw = rawurldecode($raw);
+        } catch (\Throwable) {
+            /* keep raw */
+        }
+        $raw = strtolower(trim($raw));
+        if (!preg_match('/^[a-z0-9]{4,32}$/', $raw)) {
+            return null;
+        }
+        return $raw;
     }
 
     /** @param list<string> $keys */
