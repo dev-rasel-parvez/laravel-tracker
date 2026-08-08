@@ -4,7 +4,7 @@ Composer package for **Laravel** storefronts → [EcomSolveBD](https://ecomsolve
 
 **Packagist:** [ecomsolvebd/laravel-tracker](https://packagist.org/packages/ecomsolvebd/laravel-tracker)  
 **Source:** https://github.com/dev-rasel-parvez/laravel-tracker  
-**Latest:** `v1.0.3`
+**Latest:** `v1.0.4`
 
 ## Install
 
