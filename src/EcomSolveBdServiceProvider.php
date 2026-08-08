@@ -9,6 +9,7 @@ use EcomSolveBD\LaravelTracker\Http\AttributionConfigProxyController;
 use EcomSolveBD\LaravelTracker\Http\CollectProxyController;
 use EcomSolveBD\LaravelTracker\Http\OrderStatusInboundController;
 use EcomSolveBD\LaravelTracker\Http\ProductFeedController;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
@@ -92,6 +93,14 @@ final class EcomSolveBdServiceProvider extends ServiceProvider
                         $poster->postOrder($payload);
                     }
                 });
+            }
+        }
+
+        // Admin → SaaS status (optional; loop-safe when status_changed_by=EcomSolveBD).
+        if (filter_var(config('ecomsolvebd.status_outbound.enabled', true), FILTER_VALIDATE_BOOLEAN)) {
+            $orderModel = (string) config('ecomsolvebd.order_model', 'App\\Models\\Order');
+            if ($orderModel !== '' && class_exists($orderModel) && is_subclass_of($orderModel, Model::class)) {
+                $orderModel::observe(OrderStatusOutboundObserver::class);
             }
         }
     }

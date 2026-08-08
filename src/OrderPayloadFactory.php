@@ -40,7 +40,10 @@ final class OrderPayloadFactory
      */
     public static function fromOrder(object $order): array
     {
-        $id = self::str($order, ['id', 'uuid', 'number']) ?? (string) time();
+        $numberCol = (string) config('ecomsolvebd.order_number_column', 'order_number');
+        $id =
+            self::str($order, array_values(array_unique(array_filter([$numberCol, 'order_number', 'number', 'id', 'uuid']))))
+            ?? (string) time();
         $currency = strtoupper(self::str($order, ['currency', 'currency_code']) ?? 'BDT');
         $email = self::nestedStr($order, ['customer.email', 'user.email', 'email']);
         $phone = self::nestedStr($order, ['customer.phone', 'user.phone', 'phone']);

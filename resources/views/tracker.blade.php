@@ -165,6 +165,19 @@
     if (clientId) out.client_id = clientId;
     if (session.ga_session_id) out.ga_session_id = session.ga_session_id;
     if (session.ga_session_number) out.ga_session_number = session.ga_session_number;
+    // Meta cookies (Woo/Shopify parity) — never fabricate
+    try {
+      var fbp = cookieVal('_fbp');
+      if (fbp) {
+        out.fbp = fbp;
+        out.original_fbp = fbp;
+      }
+      var fbc = cookieVal('_fbc');
+      if (fbc) {
+        out.fbc = fbc;
+        out.original_fbc = fbc;
+      }
+    } catch (e) {}
     return out;
   }
 
@@ -257,9 +270,10 @@
   setTimeout(function () {
     try {
       var ga = gaMetrics();
-      if (ga.client_id || ga.ga_session_id) send('page_view');
+      if (ga.client_id || ga.ga_session_id || ga.fbp || ga.fbc) send('page_view');
     } catch (e) {}
   }, 2000);
 })();
 </script>
+@include('ecomsolvebd::funnel-auto')
 @endif

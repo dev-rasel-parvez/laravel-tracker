@@ -5,7 +5,7 @@ Composer package for **Laravel** storefronts → [EcomSolveBD](https://ecomsolve
 
 **Packagist:** [ecomsolvebd/laravel-tracker](https://packagist.org/packages/ecomsolvebd/laravel-tracker)  
 **Source:** https://github.com/dev-rasel-parvez/laravel-tracker  
-**Latest:** `v1.0.7`
+**Latest:** `v1.0.8`
 
 ## Install
 
@@ -63,8 +63,33 @@ Also auto-registers `GET /ecomsolvebd/attribution-config`.
 ```
 
 - **gtag** — Measurement ID only; GA4 auto-events from Google
-- **tracker** — `page_view` → ESB collect (`source: laravel_tracker`)
-- Funnel events are **not** automatic — call `window.esbTrack(...)` from your Blade/JS (see marketing docs `/docs/integrations/laravel` → **ফানেল ইভেন্ট**)
+- **tracker** — `page_view` → ESB collect (`source: laravel_tracker`) + Meta `_fbp`/`_fbc` cookies when present
+- **Funnel (v1.0.8+):** auto-bind ON by default for ecommerce heuristics; form/field events via helper or `data-esb-track`
+
+### Funnel auto vs manual (v1.0.8+)
+
+| Mode | Events |
+|------|--------|
+| Always auto | `page_view` |
+| Auto ON + manual override | `view_item`, `add_to_cart`, `remove_from_cart`, `view_cart`, `begin_checkout` |
+| Helper / manual (recommended) | `checkout_form_*`, `*_name_added`, `phone_number_added`, … |
+
+```blade
+{{-- config: ECOMSOLVEBD_FUNNEL_AUTO=true (default) --}}
+```
+
+```js
+// Custom SPA / Livewire — always available:
+window.esbTrack?.('add_to_cart', { ecommerce: { currency: 'BDT', value: 999, items: [...] } });
+
+// Bind checkout form once (fires field + form events):
+window.esbBindCheckoutForm?.('#checkout-form');
+
+// Or mark inputs:
+// <input name="phone" data-esb-track="phone_number_added" />
+```
+
+Disable auto heuristics: `ECOMSOLVEBD_FUNNEL_AUTO=false`.
 
 ### Funnel event names (SaaS parity)
 
@@ -116,28 +141,39 @@ Headers:
 - `x-merchant-key` — tracking public key
 - `x-esb-signature: sha256=<hmac-sha256-hex of raw body>`
 
-## Order status (SaaS → Laravel)
+## Order status (bidirectional)
 
-From **v1.0.5**, when a merchant changes order status or books a courier in EcomSolveBD, SaaS POSTs to your shop:
+### SaaS → Laravel (v1.0.5+)
+
+When a merchant changes order status or books a courier in EcomSolveBD, SaaS POSTs to your shop:
 
 `POST {baseUrl}/ecomsolvebd/order-status`
 
 No custom controller in the merchant app — the package registers the route.
 
+### Laravel admin → SaaS (v1.0.8+)
+
+When local `Order.status` changes (admin / your code), the package observer HMAC-POSTs:
+
+`POST /api/v1/orders/channels/laravel/status`
+
+Disable: `ECOMSOLVEBD_STATUS_OUTBOUND=false`. Loop-safe: SaaS inbound saves quietly and suppresses outbound echo.
+
 ### Requirements
 
 1. Same `ECOMSOLVEBD_WEBHOOK_SECRET` as the dashboard (HMAC body signature)
 2. Correct shop **base URL** saved under Integrations → Laravel
-3. Local order found by `order_number` (default)
+3. Local order found by `order_number` (default); use the same key in order webhook `idempotencyKey` (`laravel:{order_number}`)
 
 Optional `.env` overrides:
 
 ```env
 ECOMSOLVEBD_ORDER_MODEL=App\Models\Order
 ECOMSOLVEBD_ORDER_NUMBER_COLUMN=order_number
+ECOMSOLVEBD_STATUS_OUTBOUND=true
 ```
 
-### Status map (SaaS → local)
+### Status map (SaaS ↔ local)
 
 | EcomSolveBD | Laravel `status` |
 |-------------|------------------|
@@ -195,13 +231,26 @@ ECOMSOLVEBD_FEED_PRODUCT_URL=/product/{slug}
 ECOMSOLVEBD_FEED_COL_PRICE=final_price
 ECOMSOLVEBD_FEED_COL_IMAGE=thumbnail_url
 ECOMSOLVEBD_FEED_CATEGORY_RELATION=category
+# Variations (optional): ECOMSOLVEBD_FEED_VARIATIONS_RELATION=variants
+```
+
+### Variations (v1.0.8+)
+
+Empty `ECOMSOLVEBD_FEED_VARIATIONS_RELATION` = parent rows only (safe default). When set to a HasMany relation (e.g. `variants`), each child becomes a feed row (`parentId-variantId`); parent is skipped if children exist.
+
+```env
+ECOMSOLVEBD_FEED_VARIATIONS_RELATION=variants
+ECOMSOLVEBD_FEED_VARIANT_TITLE=name
+ECOMSOLVEBD_FEED_VARIANT_PRICE=price
+ECOMSOLVEBD_FEED_VARIANT_SKU=sku
+ECOMSOLVEBD_FEED_VARIANT_STOCK=stock
 ```
 
 Custom shops: publish config and edit `feeds.columns` / `product_url_pattern`, or bind a class implementing `ProductFeedProvider`.
 
 ### Merchant checklist
 
-1. Package ≥ **v1.0.6** on the live Laravel site (first-party: ≥ **v1.0.7**)
+1. Package ≥ **v1.0.8** on the live Laravel site (first-party ≥ v1.0.7; feeds ≥ v1.0.6)
 2. Open `https://yoursite.com/feed/products.xml` — should return XML
 3. Dashboard → Products → paste the four URLs (or catalog URL for SaaS sync)
 4. Meta / TikTok / Google: paste facebook / tiktok / google URLs into each platform’s catalog feed UI

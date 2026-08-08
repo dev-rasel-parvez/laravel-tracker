@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EcomSolveBD\LaravelTracker\Http;
 
 use EcomSolveBD\LaravelTracker\OrderStatusMapper;
+use EcomSolveBD\LaravelTracker\OrderStatusOutbound;
 use EcomSolveBD\LaravelTracker\WebhookSignature;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -80,7 +81,17 @@ final class OrderStatusInboundController extends Controller
             $attrs['courier_tracking_code'] = $tracking;
         }
 
-        $order->forceFill($attrs)->save();
+        // Quiet + suppress: never echo SaaS→Laravel status back to SaaS.
+        OrderStatusOutbound::$suppressOutbound = true;
+        try {
+            if (method_exists($order, 'saveQuietly')) {
+                $order->forceFill($attrs)->saveQuietly();
+            } else {
+                $order->forceFill($attrs)->save();
+            }
+        } finally {
+            OrderStatusOutbound::$suppressOutbound = false;
+        }
 
         return response()->json([
             'ok' => true,

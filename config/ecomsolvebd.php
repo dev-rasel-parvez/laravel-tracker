@@ -59,6 +59,43 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Funnel auto-bind (browser → SaaS collect) — v1.0.8+
+    |--------------------------------------------------------------------------
+    | Auto ON by default for view_item / cart / begin_checkout heuristics.
+    | Manual window.esbTrack(...) always available. Form fields: use
+    | window.esbBindCheckoutForm('#form') or data-esb-track=\"phone_number_added\".
+    */
+    'funnel' => [
+        'auto' => filter_var(env('ECOMSOLVEBD_FUNNEL_AUTO', true), FILTER_VALIDATE_BOOLEAN),
+        'product_selector' => (string) env(
+            'ECOMSOLVEBD_FUNNEL_PRODUCT_SELECTOR',
+            '[data-esb-product],[data-product-id],.product-card'
+        ),
+        'add_to_cart_selector' => (string) env(
+            'ECOMSOLVEBD_FUNNEL_ADD_SELECTOR',
+            '[data-esb-add-to-cart],button.add-to-cart,.add-to-cart,[name="add-to-cart"]'
+        ),
+        'remove_from_cart_selector' => (string) env(
+            'ECOMSOLVEBD_FUNNEL_REMOVE_SELECTOR',
+            '[data-esb-remove-from-cart],.remove-from-cart,.cart-remove'
+        ),
+        'cart_path_contains' => (string) env('ECOMSOLVEBD_FUNNEL_CART_PATH', '/cart'),
+        'checkout_path_contains' => (string) env('ECOMSOLVEBD_FUNNEL_CHECKOUT_PATH', '/checkout'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin → SaaS status outbound (v1.0.8+)
+    |--------------------------------------------------------------------------
+    | When Order status changes in Laravel admin, HMAC POST to SaaS.
+    | Skips when status_changed_by = EcomSolveBD (inbound loop guard).
+    */
+    'status_outbound' => [
+        'enabled' => filter_var(env('ECOMSOLVEBD_STATUS_OUTBOUND', true), FILTER_VALIDATE_BOOLEAN),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Product feeds (Woo /feed/*.xml parity)
     |--------------------------------------------------------------------------
     | Public URLs (auto-registered by the package):
@@ -116,5 +153,20 @@ return [
 
         /** Product PDP path — placeholders: {slug}, {id} */
         'product_url_pattern' => (string) env('ECOMSOLVEBD_FEED_PRODUCT_URL', '/product/{slug}'),
+
+        /**
+         * Variation expand (Woo-like). Empty relation = parent rows only (safe default).
+         * When relation exists, each child becomes a feed row; parent skipped if children present.
+         */
+        'variations' => [
+            'relation' => (string) env('ECOMSOLVEBD_FEED_VARIATIONS_RELATION', ''),
+            'id_column' => (string) env('ECOMSOLVEBD_FEED_VARIANT_ID', 'id'),
+            'title_column' => (string) env('ECOMSOLVEBD_FEED_VARIANT_TITLE', 'name'),
+            'price_column' => (string) env('ECOMSOLVEBD_FEED_VARIANT_PRICE', 'price'),
+            'sku_column' => (string) env('ECOMSOLVEBD_FEED_VARIANT_SKU', 'sku'),
+            'image_column' => (string) env('ECOMSOLVEBD_FEED_VARIANT_IMAGE', ''),
+            'stock_column' => (string) env('ECOMSOLVEBD_FEED_VARIANT_STOCK', 'stock'),
+            'title_suffix' => filter_var(env('ECOMSOLVEBD_FEED_VARIANT_TITLE_SUFFIX', true), FILTER_VALIDATE_BOOLEAN),
+        ],
     ],
 ];
