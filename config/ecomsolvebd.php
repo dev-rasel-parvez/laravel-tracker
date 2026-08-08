@@ -28,4 +28,10 @@ return [
         'trim',
         explode(',', (string) env('ECOMSOLVEBD_ORDER_CREATED_EVENTS', '')),
     ))),
+
+    /** Eloquent model used by SaaS → Laravel status push. */
+    'order_model' => (string) env('ECOMSOLVEBD_ORDER_MODEL', 'App\\Models\\Order'),
+
+    /** Column that stores the merchant-visible order number (e.g. ORD-…). */
+    'order_number_column' => (string) env('ECOMSOLVEBD_ORDER_NUMBER_COLUMN', 'order_number'),
 ];

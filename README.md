@@ -4,7 +4,7 @@ Composer package for **Laravel** storefronts → [EcomSolveBD](https://ecomsolve
 
 **Packagist:** [ecomsolvebd/laravel-tracker](https://packagist.org/packages/ecomsolvebd/laravel-tracker)  
 **Source:** https://github.com/dev-rasel-parvez/laravel-tracker  
-**Latest:** `v1.0.4`
+**Latest:** `v1.0.5`
 
 ## Install
 
@@ -99,6 +99,6 @@ Full guide: https://ecomsolvebd.com/docs/integrations/laravel
 
 ## MVP limits
 
-- No two-way order status push yet
+- Two-way order status: SaaS → `POST /ecomsolvebd/order-status` (HMAC) updates local order
 - No product feeds yet
 - Product CRUD stays in Laravel (connected-store rule)

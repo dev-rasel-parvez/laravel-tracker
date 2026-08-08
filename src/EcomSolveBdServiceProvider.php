@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace EcomSolveBD\LaravelTracker;
 
+use EcomSolveBD\LaravelTracker\Http\OrderStatusInboundController;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 final class EcomSolveBdServiceProvider extends ServiceProvider
@@ -47,6 +49,10 @@ final class EcomSolveBdServiceProvider extends ServiceProvider
         Blade::directive('ecomsolvebdGtag', static function () {
             return "<?php echo view('ecomsolvebd::gtag')->render(); ?>";
         });
+
+        // No CSRF — HMAC verified inside controller (SaaS → storefront status push).
+        Route::post('/ecomsolvebd/order-status', OrderStatusInboundController::class)
+            ->name('ecomsolvebd.order-status');
 
         $events = config('ecomsolvebd.order_created_events', []);
         if (is_array($events)) {
