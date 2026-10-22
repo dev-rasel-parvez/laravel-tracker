@@ -15,9 +15,9 @@
     "facebook-catalog",
     "google-merchant"
   ],
-  "homepage": "https://ecomsolvebd.com/docs/integrations/laravel",
+  "homepage": "https://ecomsolvebd.com/docs/integrations/custom/laravel",
   "support": {
-    "docs": "https://ecomsolvebd.com/docs/integrations/laravel",
+    "docs": "https://ecomsolvebd.com/docs/integrations/custom/laravel",
     "issues": "https://github.com/dev-rasel-parvez/laravel-tracker/issues",
     "source": "https://github.com/dev-rasel-parvez/laravel-tracker"
   },

@@ -42,12 +42,16 @@ final class ProductFeedController extends Controller
         $xml = match ($channel) {
             'products' => ProductFeedXmlBuilder::productsCatalog($provider->catalogProducts(), $currency),
             'facebook' => ProductFeedXmlBuilder::facebookRss($provider->channelItems(), $storeName, $origin, $self),
-            'tiktok' => ProductFeedXmlBuilder::tiktok($provider->channelItems(), $currency),
+            'tiktok' => ProductFeedXmlBuilder::tiktok($provider->channelItems(), $storeName, $origin, $self),
             default => ProductFeedXmlBuilder::googleRss($provider->channelItems(), $storeName, $origin),
         };
 
+        $type = in_array($channel, ['facebook', 'tiktok'], true)
+            ? 'application/rss+xml; charset=utf-8'
+            : 'application/xml; charset=utf-8';
+
         return response($xml, 200)
-            ->header('Content-Type', 'application/xml; charset=utf-8')
+            ->header('Content-Type', $type)
             ->header('Cache-Control', 'public, max-age=300');
     }
 

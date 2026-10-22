@@ -7,6 +7,7 @@ namespace EcomSolveBD\LaravelTracker;
 use EcomSolveBD\LaravelTracker\Feed\EloquentProductFeedProvider;
 use EcomSolveBD\LaravelTracker\Http\AttributionConfigProxyController;
 use EcomSolveBD\LaravelTracker\Http\CollectProxyController;
+use EcomSolveBD\LaravelTracker\Http\OrderCreateInboundController;
 use EcomSolveBD\LaravelTracker\Http\OrderStatusInboundController;
 use EcomSolveBD\LaravelTracker\Http\ProductFeedController;
 use Illuminate\Database\Eloquent\Model;
@@ -63,6 +64,13 @@ final class EcomSolveBdServiceProvider extends ServiceProvider
             ->name('ecomsolvebd.order-status');
         if (method_exists($orderStatus, 'withoutMiddleware')) {
             $orderStatus->withoutMiddleware([VerifyCsrfToken::class]);
+        }
+
+        // SaaS Dashboard Create Order → Laravel admin (HMAC).
+        $orderCreate = Route::post('/ecomsolvebd/order-create', OrderCreateInboundController::class)
+            ->name('ecomsolvebd.order-create');
+        if (method_exists($orderCreate, 'withoutMiddleware')) {
+            $orderCreate->withoutMiddleware([VerifyCsrfToken::class]);
         }
 
         // First-party store proxy (Woo REST ingest parity) — browser → Laravel → SaaS.

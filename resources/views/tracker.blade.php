@@ -265,12 +265,19 @@
     return true;
   }
   window.esbTrack = send;
-  send('page_view');
-  // gtag often writes `_ga` / `_ga_*` after first paint — re-hit so purchase identity gets session_id_from=ga
+  // First-ever visit → landing_page_view only (once per visitor, never page_view on that hit).
+  var firstVisit = false;
+  try {
+    firstVisit = !localStorage.getItem(FT_KEY);
+  } catch (e) {}
+  var initialEvent = firstVisit ? 'landing_page_view' : 'page_view';
+  send(initialEvent);
+  // gtag often writes `_ga` / `_ga_*` after first paint — re-hit the SAME event so ingest dedupe
+  // merges GA ids into it (session_id_from=ga) instead of adding a second row
   setTimeout(function () {
     try {
       var ga = gaMetrics();
-      if (ga.client_id || ga.ga_session_id || ga.fbp || ga.fbc) send('page_view');
+      if (ga.client_id || ga.ga_session_id || ga.fbp || ga.fbc) send(initialEvent);
     } catch (e) {}
   }, 2000);
 })();

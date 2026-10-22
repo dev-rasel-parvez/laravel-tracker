@@ -160,6 +160,10 @@ final class EloquentProductFeedProvider implements ProductFeedProvider
         }
         $stock = $this->stockFields($src, $stockCols);
         $category = $this->categoryLabel($parent, ', ');
+        $sku = (string) $this->attr(
+            $src,
+            $variant ? $this->variantCol('sku_column', 'sku') : ($cols['sku'] ?? 'sku')
+        );
 
         return new FeedCatalogProduct(
             id: $id,
@@ -170,6 +174,8 @@ final class EloquentProductFeedProvider implements ProductFeedProvider
             image: $image,
             stockStatus: $stock['status'],
             stockQty: $stock['qty'],
+            productUrl: $this->productUrl($parent, $cols),
+            sku: $sku,
         );
     }
 

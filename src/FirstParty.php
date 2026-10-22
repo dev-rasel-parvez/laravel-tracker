@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace EcomSolveBD\LaravelTracker;
 
 /**
- * First-party ingest ladder (Woo / Shopify / ESB parity):
+ * First-party ingest ladder (all platforms parity):
  * verified CNAME → custom_subdomain
- * auto → same-origin store proxy
- * else → direct_api
+ * else → direct_api (api.ecomsolvebd.com)
+ * Store proxy routes remain for back-compat only.
  */
 final class FirstParty
 {
@@ -59,23 +59,6 @@ final class FirstParty
                 'trackingHostname' => $hostname,
                 'firstPartyMode' => $mode,
                 'trackingHostnameVerified' => true,
-            ];
-        }
-
-        if ($mode === 'auto' && $merchantKey !== '') {
-            $origin = self::storeOrigin();
-
-            return [
-                'endpoint' => $origin.self::PROXY_COLLECT_PATH.($merchantKey !== '' ? '?'.http_build_query(['key' => $merchantKey]) : ''),
-                'attributionConfigUrl' => $origin.self::PROXY_ATTR_PATH.'?'.http_build_query([
-                    'key' => $merchantKey,
-                    'store' => 'laravel',
-                ]),
-                'ingestMode' => 'store_proxy',
-                'credentials' => 'omit',
-                'trackingHostname' => '',
-                'firstPartyMode' => $mode,
-                'trackingHostnameVerified' => false,
             ];
         }
 

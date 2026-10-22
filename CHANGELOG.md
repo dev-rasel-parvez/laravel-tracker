@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.10
+
+- `@ecomsolvebdTracker`: visitor's first-ever load (no `esb_first_touch` in localStorage yet) now sends `landing_page_view` instead of `page_view`, so Dashboard Total Users / Campaigns LP Views and order journeys count Laravel visits (same as Custom bootstrap and Woo/Shopify trackers). Once per visitor: that hit never also sends `page_view`, later loads send only `page_view`, and the 2s GA-cookie re-hit repeats the same event (server ingest dedupe merges it, no extra row).
+
+## v1.0.9
+
+- SaaS Dashboard **Create Order** → Laravel: HMAC `POST /ecomsolvebd/order-create` (configurable column map; outbound suppress so it does not re-webhook SaaS)
+- Docs: Create Order two-way note for Laravel package merchants
+
 ## v1.0.8
 
 - `_fbp` / `_fbc` (+ `original_fbp` / `original_fbc`) on every Blade collect hit

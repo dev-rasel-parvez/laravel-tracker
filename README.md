@@ -3,9 +3,10 @@
 Composer package for **Laravel** storefronts → [EcomSolveBD](https://ecomsolvebd.com)
 (tracking collect + signed order webhooks + status push + product feeds).
 
-**Packagist:** [ecomsolvebd/laravel-tracker](https://packagist.org/packages/ecomsolvebd/laravel-tracker)  
+**Homepage:** https://ecomsolvebd.com/docs/integrations/custom/laravel  
+**Custom hub:** https://ecomsolvebd.com/docs/integrations/custom  
 **Source:** https://github.com/dev-rasel-parvez/laravel-tracker  
-**Latest:** `v1.0.8`
+**Latest:** `v1.0.10`
 
 ## Install
 
@@ -151,6 +152,14 @@ When a merchant changes order status or books a courier in EcomSolveBD, SaaS POS
 
 No custom controller in the merchant app — the package registers the route.
 
+### SaaS Dashboard Create Order → Laravel (v1.0.9+)
+
+Orders → **Create order** in EcomSolveBD also creates a local admin row:
+
+`POST {baseUrl}/ecomsolvebd/order-create`
+
+HMAC-signed; outbound webhook is suppressed so it does not re-post to SaaS. Map columns via `order_create.columns` in `config/ecomsolvebd.php` (or env overrides).
+
 ### Laravel admin → SaaS (v1.0.8+)
 
 When local `Order.status` changes (admin / your code), the package observer HMAC-POSTs:
@@ -193,7 +202,7 @@ Many Laravel shops use fewer stages than SaaS — e.g. “Ready for Pickup” be
 | 404 | No order with that `order_number` |
 | 200 | Status updated |
 
-Merchant guide: https://ecomsolvebd.com/docs/integrations/laravel#status-push
+Merchant guide: https://ecomsolvebd.com/docs/integrations/custom/laravel#status-push
 
 ## Product feeds (Woo parity) — v1.0.6+
 
@@ -257,11 +266,12 @@ Custom shops: publish config and edit `feeds.columns` / `product_url_pattern`, o
 5. Cost fields (`buying_cost`, etc.) stay in SaaS only — feeds do **not** overwrite them (Woo parity)
 6. First-party: Integrations → Laravel → Auto + optional CNAME verify
 
-Merchant guide: https://ecomsolvebd.com/docs/integrations/laravel#product-feeds · https://ecomsolvebd.com/docs/integrations/laravel#first-party
+Merchant guide: https://ecomsolvebd.com/docs/integrations/custom/laravel#product-feeds · https://ecomsolvebd.com/docs/integrations/custom/laravel#first-party
 
 ## Docs
 
-Full guide: https://ecomsolvebd.com/docs/integrations/laravel
+Full guide: https://ecomsolvebd.com/docs/integrations/custom/laravel  
+Custom / Headless hub: https://ecomsolvebd.com/docs/integrations/custom
 
 ## Limits
 

@@ -25,6 +25,101 @@
     return true;
   };
 
+  var ESB_EMAIL_TOKEN =
+    /(^|[^a-z0-9])(e-?mail|user_email|customer_email|billing_email|shipping_email|contact_email|checkout_email|email_address|mailaddress|ইমেইল|ই-মেইল)([^a-z0-9]|$)/i;
+  var ESB_PHONE_TOKEN =
+    /(^|[^a-z0-9])(phone|mobile|cellphone|whatsapp|billing_phone|shipping_phone|contact_phone|customer_phone|checkout_phone|phone_number|phonenumber|tel|telephone|মোবাইল|ফোন)([^a-z0-9]|$)/i;
+
+  function esbFieldAttr(el, name) {
+    try {
+      return el && el.getAttribute ? String(el.getAttribute(name) || '') : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function classifyCheckoutContactField(el) {
+    if (!el || el.disabled) return null;
+    var tag = String(el.tagName || '').toLowerCase();
+    if (tag !== 'input' && tag !== 'textarea') return null;
+    var type = String(el.type || 'text').toLowerCase();
+    if (
+      type === 'hidden' ||
+      type === 'checkbox' ||
+      type === 'radio' ||
+      type === 'submit' ||
+      type === 'button' ||
+      type === 'password' ||
+      type === 'file' ||
+      type === 'image'
+    ) {
+      return null;
+    }
+    if (type === 'email') return 'email';
+    if (type === 'tel') return 'phone';
+    var ac = String(el.autocomplete || esbFieldAttr(el, 'autocomplete') || '')
+      .toLowerCase()
+      .split(' ')
+      .pop();
+    if (ac === 'email') return 'email';
+    if (ac === 'tel' || ac === 'tel-national' || ac === 'tel-local' || ac === 'tel-country-code' || ac === 'mobile') {
+      return 'phone';
+    }
+    var mode = String(el.inputMode || esbFieldAttr(el, 'inputmode') || '').toLowerCase();
+    if (mode === 'email') return 'email';
+    if (mode === 'tel') return 'phone';
+    var hay = [
+      el.name,
+      el.id,
+      el.className,
+      el.placeholder,
+      el.type,
+      el.inputMode,
+      esbFieldAttr(el, 'autocomplete'),
+      esbFieldAttr(el, 'inputmode'),
+      esbFieldAttr(el, 'aria-label'),
+      esbFieldAttr(el, 'data-field'),
+      esbFieldAttr(el, 'data-name'),
+      esbFieldAttr(el, 'data-testid'),
+      esbFieldAttr(el, 'data-esb-track'),
+    ]
+      .join(' ')
+      .toLowerCase();
+    if (ESB_EMAIL_TOKEN.test(hay)) return 'email';
+    if (ESB_PHONE_TOKEN.test(hay)) return 'phone';
+    return null;
+  }
+
+  function markContactValueFired(kind, value) {
+    window.__esbContactValueFired = window.__esbContactValueFired || {};
+    var raw = String(value || '').trim();
+    if (!raw || (kind !== 'email' && kind !== 'phone')) return false;
+    var norm = kind === 'phone' ? raw.replace(/\D/g, '').slice(-10) : raw.toLowerCase();
+    if (kind === 'phone' && norm.length < 8) return false;
+    if (kind === 'email' && norm.indexOf('@') < 1) return false;
+    var key = kind + ':' + norm;
+    if (window.__esbContactValueFired[key]) return false;
+    window.__esbContactValueFired[key] = 1;
+    return true;
+  }
+
+  function emitContactIfNeeded(el, eventNameHint) {
+    var v = String(el && el.value ? el.value : '').trim();
+    if (!v) return false;
+    var kind = classifyCheckoutContactField(el);
+    var eventName = eventNameHint || '';
+    if (kind === 'email') eventName = 'email_address_added';
+    else if (kind === 'phone') eventName = 'phone_number_added';
+    if (eventName !== 'email_address_added' && eventName !== 'phone_number_added') return false;
+    var contactKind = eventName === 'email_address_added' ? 'email' : 'phone';
+    if (!markContactValueFired(contactKind, v)) return true;
+    var props = { field_value_len: v.length };
+    if (contactKind === 'phone') props.phone = v;
+    if (contactKind === 'email') props.email = v;
+    window.esbTrack(eventName, props);
+    return true;
+  }
+
   function readProductFromEl(el) {
     if (!el || !el.getAttribute) return null;
     var id =
@@ -144,14 +239,21 @@
         function (ev) {
           markStarted();
           var el = ev.target;
-          if (!el || !el.name) return;
+          if (!el) return;
+          if (emitContactIfNeeded(el)) return;
+          if (!el.name) return;
           var key = String(el.name).toLowerCase().replace(/\[\]$/, '');
           var short = key.split(/[\[\].]/).filter(Boolean).pop() || key;
           var eventName = map[short] || map[key];
           if (!eventName) return;
           var v = String(el.value || '').trim();
           if (!v) return;
-          window.esbTrack(eventName, { field_value_len: v.length });
+          var props = { field_value_len: v.length };
+          if (eventName === 'phone_number_added' || eventName === 'email_address_added') {
+            emitContactIfNeeded(el, eventName);
+            return;
+          }
+          window.esbTrack(eventName, props);
         },
         true,
       );
@@ -159,18 +261,13 @@
         window.esbTrack('checkout_form_completed', {});
         window.__esbCheckoutCompleted = true;
       });
-      window.addEventListener('pagehide', function () {
-        if (started && !window.__esbCheckoutCompleted) {
-          window.esbTrack('checkout_form_abandoned', {});
-        }
-      });
       return true;
     } catch (e) {
       return false;
     }
   };
 
-  // data-esb-track=\"event_name\" soft bind
+  // Contact fields + data-esb-track=\"event_name\" — type/autocomplete/name/placeholder, not only name=email|phone
   document.addEventListener(
     'change',
     function (ev) {
@@ -178,6 +275,7 @@
         var el = ev.target;
         if (!el || !el.getAttribute) return;
         var evName = el.getAttribute('data-esb-track');
+        if (emitContactIfNeeded(el, evName || '')) return;
         if (!evName) return;
         var v = String(el.value || '').trim();
         if (!v) return;

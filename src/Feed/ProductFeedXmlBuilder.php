@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace EcomSolveBD\LaravelTracker\Feed;
 
 /**
- * Woo class-esb-feed.php XML layouts (products / facebook / tiktok / google).
+ * Woo class-esb-feed.php XML layouts (products / facebook RSS / tiktok RSS / google RSS).
  */
 final class ProductFeedXmlBuilder
 {
@@ -26,6 +26,12 @@ final class ProductFeedXmlBuilder
             $out .= '    <currency>' . XmlSafe::escape($p->currency !== '' ? $p->currency : $currency) . "</currency>\n";
             $out .= '    <category>' . XmlSafe::escape($p->category) . "</category>\n";
             $out .= '    <image>' . XmlSafe::escape($p->image) . "</image>\n";
+            if ($p->sku !== '') {
+                $out .= '    <sku>' . XmlSafe::escape($p->sku) . "</sku>\n";
+            }
+            if ($p->productUrl !== '') {
+                $out .= '    <product_url>' . XmlSafe::escape($p->productUrl) . "</product_url>\n";
+            }
             $out .= '    <stock>' . XmlSafe::escape($p->stockStatus) . "</stock>\n";
             $out .= '    <stock_qty>' . XmlSafe::escape($p->stockQty) . "</stock_qty>\n";
             $out .= "  </product>\n";
@@ -74,29 +80,36 @@ final class ProductFeedXmlBuilder
     /**
      * @param iterable<FeedChannelItem> $items
      */
-    public static function tiktok(iterable $items, string $currency): string
+    public static function tiktok(iterable $items, string $storeName, string $origin, string $selfUrl): string
     {
-        $currency = strtoupper(substr($currency !== '' ? $currency : 'BDT', 0, 3));
+        $store = XmlSafe::escape($storeName !== '' ? $storeName : 'Store');
         $parts = [
-            '<?xml version="1.0" encoding="UTF-8"?>',
-            '<products generated_at="' . XmlSafe::escape(gmdate('c')) . '" currency="' . XmlSafe::escape($currency) . '" channel="tiktok">',
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+            '<channel>',
+            '<title>' . $store . ' Product Feed</title>',
+            '<description>Product Feed for TikTok</description>',
+            '<link>' . XmlSafe::escape(rtrim($origin, '/') . '/') . '</link>',
+            '<atom:link href="' . XmlSafe::escape($selfUrl) . '" rel="self" type="application/rss+xml" />',
         ];
         foreach ($items as $it) {
-            $parts[] = '<product>';
-            $parts[] = '<sku_id>' . XmlSafe::escape($it->skuId) . '</sku_id>';
-            $parts[] = '<id>' . XmlSafe::escape($it->id) . '</id>';
-            $parts[] = '<title>' . XmlSafe::escape($it->title) . '</title>';
-            $parts[] = '<description>' . XmlSafe::escape($it->description) . '</description>';
-            $parts[] = '<availability>' . XmlSafe::escape($it->availabilityMeta) . '</availability>';
-            $parts[] = '<condition>new</condition>';
-            $parts[] = '<price>' . XmlSafe::escape($it->price) . '</price>';
-            $parts[] = '<link>' . XmlSafe::escape($it->link) . '</link>';
-            $parts[] = '<image_link>' . XmlSafe::escape($it->imageLink) . '</image_link>';
-            $parts[] = '<brand>' . XmlSafe::escape($it->brand) . '</brand>';
-            $parts[] = '<product_type>' . XmlSafe::escape($it->productType) . '</product_type>';
-            $parts[] = '</product>';
+            $sku = $it->skuId !== '' ? $it->skuId : $it->id;
+            $parts[] = '<item>';
+            $parts[] = '<g:id>' . XmlSafe::escape($sku) . '</g:id>';
+            $parts[] = '<sku_id>' . XmlSafe::escape($sku) . '</sku_id>';
+            $parts[] = '<g:title>' . XmlSafe::escape($it->title) . '</g:title>';
+            $parts[] = '<g:description>' . XmlSafe::escape($it->description) . '</g:description>';
+            $parts[] = '<g:link>' . XmlSafe::escape($it->link) . '</g:link>';
+            $parts[] = '<g:image_link>' . XmlSafe::escape($it->imageLink) . '</g:image_link>';
+            $parts[] = '<g:brand>' . XmlSafe::escape($it->brand) . '</g:brand>';
+            $parts[] = '<g:condition>new</g:condition>';
+            $parts[] = '<g:availability>' . XmlSafe::escape($it->availabilityMeta) . '</g:availability>';
+            $parts[] = '<g:price>' . XmlSafe::escape($it->price) . '</g:price>';
+            $parts[] = '<g:product_type>' . XmlSafe::escape($it->productType) . '</g:product_type>';
+            $parts[] = '</item>';
         }
-        $parts[] = '</products>';
+        $parts[] = '</channel>';
+        $parts[] = '</rss>';
 
         return implode("\n", $parts) . "\n";
     }

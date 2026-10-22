@@ -59,6 +59,37 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | SaaS Dashboard → Laravel Create Order (v1.0.9+)
+    |--------------------------------------------------------------------------
+    | POST /ecomsolvebd/order-create (HMAC). Map logical fields → your Order columns.
+    | Set a column to "" to skip. Only fillable/forceFill attributes are written.
+    */
+    'order_create' => [
+        'columns' => [
+            'customer_name' => (string) env('ECOMSOLVEBD_ORDER_COL_NAME', 'customer_name'),
+            'customer_phone' => (string) env('ECOMSOLVEBD_ORDER_COL_PHONE', 'customer_phone'),
+            'customer_email' => (string) env('ECOMSOLVEBD_ORDER_COL_EMAIL', 'customer_email'),
+            'district' => (string) env('ECOMSOLVEBD_ORDER_COL_DISTRICT', 'district'),
+            'upazila' => (string) env('ECOMSOLVEBD_ORDER_COL_UPAZILA', 'upazila'),
+            'address' => (string) env('ECOMSOLVEBD_ORDER_COL_ADDRESS', 'address'),
+            'notes' => (string) env('ECOMSOLVEBD_ORDER_COL_NOTES', 'notes'),
+            'currency' => (string) env('ECOMSOLVEBD_ORDER_COL_CURRENCY', 'currency'),
+            'subtotal' => (string) env('ECOMSOLVEBD_ORDER_COL_SUBTOTAL', 'subtotal'),
+            'shipping_total' => (string) env('ECOMSOLVEBD_ORDER_COL_SHIPPING', 'shipping_total'),
+            'total' => (string) env('ECOMSOLVEBD_ORDER_COL_TOTAL', 'total'),
+            'status' => (string) env('ECOMSOLVEBD_ORDER_COL_STATUS', 'status'),
+            'product_title' => (string) env('ECOMSOLVEBD_ORDER_COL_PRODUCT', 'product_title'),
+            'sku' => (string) env('ECOMSOLVEBD_ORDER_COL_SKU', 'sku'),
+            'quantity' => (string) env('ECOMSOLVEBD_ORDER_COL_QTY', 'quantity'),
+            'unit_price' => (string) env('ECOMSOLVEBD_ORDER_COL_UNIT_PRICE', 'unit_price'),
+            'items_json' => (string) env('ECOMSOLVEBD_ORDER_COL_ITEMS_JSON', 'items_json'),
+            'source' => (string) env('ECOMSOLVEBD_ORDER_COL_SOURCE', 'source'),
+            'status_changed_by' => (string) env('ECOMSOLVEBD_ORDER_COL_STATUS_BY', 'status_changed_by'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Funnel auto-bind (browser → SaaS collect) — v1.0.8+
     |--------------------------------------------------------------------------
     | Auto ON by default for view_item / cart / begin_checkout heuristics.
@@ -101,7 +132,7 @@ return [
     | Public URLs (auto-registered by the package):
     |   /feed/products.xml  — EcomSolveBD catalog sync
     |   /feed/facebook.xml  — Meta Commerce Manager
-    |   /feed/tiktok.xml    — TikTok catalog
+    |   /feed/tiktok.xml    — TikTok catalog (RSS/XML + sku_id)
     |   /feed/google.xml    — Google Merchant Center
     |
     | Cost fields are NOT emitted (Woo parity). SaaS preserves buying/packaging/

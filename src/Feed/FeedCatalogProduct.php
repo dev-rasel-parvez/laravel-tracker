@@ -19,6 +19,8 @@ final class FeedCatalogProduct
         public readonly string $image,
         public readonly string $stockStatus,
         public readonly string $stockQty,
+        public readonly string $productUrl = '',
+        public readonly string $sku = '',
     ) {
     }
 }
