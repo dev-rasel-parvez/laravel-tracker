@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.11
+
+- `esbBindCheckoutForm` and `data-esb-track`: `first_name_added` now sends the typed name as `{ name }` and `last_name_added` as `{ last_name }`, so Checkout drop-off (abandon recovery) shows the buyer name. Stored only in EcomSolveBD; not forwarded to GA4 / ads.
+
 ## v1.0.10
 
 - `@ecomsolvebdTracker`: visitor's first-ever load (no `esb_first_touch` in localStorage yet) now sends `landing_page_view` instead of `page_view`, so Dashboard Total Users / Campaigns LP Views and order journeys count Laravel visits (same as Custom bootstrap and Woo/Shopify trackers). Once per visitor: that hit never also sends `page_view`, later loads send only `page_view`, and the 2s GA-cookie re-hit repeats the same event (server ingest dedupe merges it, no extra row).

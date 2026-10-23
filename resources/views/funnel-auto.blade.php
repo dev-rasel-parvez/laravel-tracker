@@ -210,6 +210,14 @@
    * Helper: bind a checkout form for form/field events (manual opt-in).
    * Example: window.esbBindCheckoutForm('#checkout-form')
    */
+  // Real name → Checkout drop-off "Customer" (server-only; not forwarded to GA4/ads).
+  function esbFieldProps(eventName, v) {
+    var props = { field_value_len: v.length };
+    if (eventName === 'first_name_added') props.name = v;
+    if (eventName === 'last_name_added') props.last_name = v;
+    return props;
+  }
+
   window.esbBindCheckoutForm = function (formSelector, fieldMap) {
     try {
       var form = typeof formSelector === 'string' ? document.querySelector(formSelector) : formSelector;
@@ -248,7 +256,7 @@
           if (!eventName) return;
           var v = String(el.value || '').trim();
           if (!v) return;
-          var props = { field_value_len: v.length };
+          var props = esbFieldProps(eventName, v);
           if (eventName === 'phone_number_added' || eventName === 'email_address_added') {
             emitContactIfNeeded(el, eventName);
             return;
@@ -279,7 +287,7 @@
         if (!evName) return;
         var v = String(el.value || '').trim();
         if (!v) return;
-        window.esbTrack(evName, { field_value_len: v.length });
+        window.esbTrack(evName, esbFieldProps(evName, v));
       } catch (e) {}
     },
     true,
