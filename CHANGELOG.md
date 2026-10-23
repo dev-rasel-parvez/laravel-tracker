@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.13
+
+- Every event now carries `device`, `device_model`, `browser`, `os` from the shopper's user-agent (same labels as the WooCommerce tracker), so Device & technology reports and the Device / OS with Version / Device model / Browser filters fill in for Laravel stores.
+
 ## v1.0.12
 
 - Collect proxy forwards the shopper as `X-ESB-Client-IP` / `X-ESB-Client-Country`. Before, the API saw the hosting server and every visitor was geolocated to the server country.

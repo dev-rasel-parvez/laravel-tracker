@@ -215,6 +215,51 @@
     }
   }
 
+  // Device & technology labels from the user-agent — same labels as the WooCommerce tracker.
+  function deviceContext() {
+    var ua = String((navigator && navigator.userAgent) || '').replace(/\s+/g, ' ').trim();
+    if (!ua) return {};
+    var m;
+    var device = 'Desktop';
+    if (/iPad|Tablet|PlayBook|Silk\/|Kindle/i.test(ua) || (/Android/i.test(ua) && !/Mobile/i.test(ua))) device = 'Tablet';
+    else if (/Mobi|iPhone|iPod|Android.*Mobile|Windows Phone|IEMobile|BlackBerry|Opera Mini/i.test(ua)) device = 'Mobile';
+    else if (/Smart-?TV|AppleTV|GoogleTV|HbbTV|NetCast|webOS|Tizen|Roku|CrKey/i.test(ua)) device = 'TV';
+    var browser = 'Unknown';
+    if ((m = ua.match(/\bEdg(?:e|A|iOS)?\/([\d.]+)/i))) browser = 'Edge ' + m[1];
+    else if ((m = ua.match(/\bOPR\/([\d.]+)/i) || ua.match(/\bOpera\/([\d.]+)/i))) browser = 'Opera ' + m[1];
+    else if ((m = ua.match(/\bSamsungBrowser\/([\d.]+)/i))) browser = 'Samsung Internet ' + m[1];
+    else if ((m = ua.match(/\bFirefox\/([\d.]+)/i))) browser = 'Firefox ' + m[1];
+    else if ((m = ua.match(/\bChrome\/([\d.]+)/i))) browser = 'Chrome ' + m[1];
+    else if ((m = ua.match(/\bVersion\/([\d.]+).*Safari/i))) browser = 'Safari ' + m[1];
+    var os = 'Unknown';
+    var win = { '10.0': '10/11', '6.3': '8.1', '6.2': '8', '6.1': '7', '6.0': 'Vista', '5.1': 'XP' };
+    if ((m = ua.match(/\bWindows NT ([\d.]+)/i))) os = 'Windows ' + (win[m[1]] || m[1]);
+    else if (/\bWindows/i.test(ua)) os = 'Windows';
+    else if ((m = ua.match(/\b(?:iPhone OS|CPU OS) ([\d_]+)/i))) os = 'iOS ' + m[1].replace(/_/g, '.');
+    else if ((m = ua.match(/\bMac OS X ([\d_]+)/i))) os = 'macOS ' + m[1].replace(/_/g, '.');
+    else if ((m = ua.match(/\bAndroid ([\d.]+)/i))) os = 'Android ' + m[1];
+    else if (/\bLinux/i.test(ua)) os = 'Linux';
+    var model = '';
+    if (/\biPhone\b/i.test(ua)) model = 'iPhone';
+    else if (/\biPad\b/i.test(ua)) model = 'iPad';
+    else {
+      var group = (ua.match(/\(([^)]+)\)/) || [])[1] || '';
+      var parts = group.split(';');
+      for (var i = 0; i < parts.length; i++) {
+        var part = parts[i].replace(/\s+Build\/.+$/i, '').trim();
+        if (/\b(?:SM-[A-Z0-9]+|Pixel\s+\d|CPH\d+|RMX\d+|Infinix|TECNO|OPPO|vivo|Redmi|POCO|OnePlus)\b/i.test(part)) {
+          var sm = part.toUpperCase().match(/\bSM-([AMF])(\d{2})\d[A-Z0-9]*\b/);
+          model = sm ? 'Samsung ' + sm[1] + sm[2] : part;
+          break;
+        }
+        if (!model && /^Windows NT/i.test(part)) model = part;
+      }
+    }
+    var out = { device: device, browser: browser, os: os };
+    if (model) out.device_model = model;
+    return out;
+  }
+
   function send(eventName, extra) {
     var now = captureFromHref(location.href);
     var first = ensureFirstTouch({
@@ -243,6 +288,7 @@
         utm: Object.keys(now.utm).length ? now.utm : undefined,
         first_touch: first || undefined,
       },
+      deviceContext(),
       ga,
       extra || {},
     );
