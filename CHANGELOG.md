@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.12
+
+- Collect proxy forwards the shopper as `X-ESB-Client-IP` / `X-ESB-Client-Country`. Before, the API saw the hosting server and every visitor was geolocated to the server country.
+
 ## v1.0.11
 
 - `esbBindCheckoutForm` and `data-esb-track`: `first_name_added` now sends the typed name as `{ name }` and `last_name_added` as `{ last_name }`, so Checkout drop-off (abandon recovery) shows the buyer name. Stored only in EcomSolveBD; not forwarded to GA4 / ads.

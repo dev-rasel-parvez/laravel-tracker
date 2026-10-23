@@ -46,6 +46,18 @@ final class CollectProxyController extends Controller
         if ($xff !== '') {
             $headers[] = 'X-Forwarded-For: '.$xff;
         }
+        // Shopper IP + country, explicitly. Otherwise the API's CDN sees THIS server
+        // and every visitor's geography becomes the hosting country.
+        $shopperIp = self::firstPublicIp(
+            (string) ($request->header('cf-connecting-ip') ?: $request->header('x-real-ip') ?: $xff)
+        );
+        if ($shopperIp !== null) {
+            $headers[] = 'X-ESB-Client-IP: '.$shopperIp;
+        }
+        $country = strtoupper(trim((string) $request->header('cf-ipcountry', '')));
+        if (preg_match('/^[A-Z]{2}$/', $country) === 1 && $country !== 'XX' && $country !== 'T1') {
+            $headers[] = 'X-ESB-Client-Country: '.$country;
+        }
 
         $ch = curl_init($url);
         if ($ch === false) {
@@ -73,5 +85,21 @@ final class CollectProxyController extends Controller
         return response(is_string($respBody) ? $respBody : '', $code > 0 ? $code : 502)
             ->header('Content-Type', 'application/json')
             ->header('Cache-Control', 'no-store');
+    }
+
+    /** First public IP in a comma-separated header (client first, proxies after). */
+    private static function firstPublicIp(string $raw): ?string
+    {
+        foreach (explode(',', $raw) as $part) {
+            $ip = trim($part);
+            if (str_starts_with($ip, '::ffff:')) {
+                $ip = substr($ip, 7);
+            }
+            if ($ip !== '' && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return $ip;
+            }
+        }
+
+        return null;
     }
 }
