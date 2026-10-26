@@ -82,8 +82,14 @@ final class OrderCreateInboundController extends Controller
             }
         }
 
+        // Store's own sequence: latest numeric order number + 1 (EcomSolveBD then shows and syncs it).
+        $assignedNumber = $orderNumber;
+        if ((bool) config('ecomsolvebd.order_create.sequential_number', true)) {
+            $assignedNumber = self::nextSequentialNumber($modelClass, $numberColumn) ?? $orderNumber;
+        }
+
         $attrs = [
-            $numberColumn => $orderNumber,
+            $numberColumn => $assignedNumber,
         ];
 
         $map = [
@@ -148,11 +154,40 @@ final class OrderCreateInboundController extends Controller
             OrderStatusOutbound::$suppressOutbound = false;
         }
 
-        return response()->json([
+        return response()->json(array_merge([
             'ok' => true,
-            'orderNumber' => $orderNumber,
+            'orderNumber' => $assignedNumber,
             'id' => $order->getKey(),
             'created' => true,
-        ], 201);
+        ], $assignedNumber !== $orderNumber ? ['displayOrderNumber' => $assignedNumber] : []), 201);
+    }
+
+    /**
+     * Latest order's number + 1 when it is purely numeric; null otherwise (keep the ESB key).
+     *
+     * @param class-string<Model> $modelClass
+     */
+    private static function nextSequentialNumber(string $modelClass, string $numberColumn): ?string
+    {
+        try {
+            /** @var Model $probe */
+            $probe = new $modelClass();
+            $latest = $modelClass::query()->orderByDesc($probe->getKeyName())->value($numberColumn);
+            $latest = trim((string) $latest);
+            if ($latest === '' || ! ctype_digit($latest) || strlen($latest) > 15) {
+                return null;
+            }
+            $next = (int) $latest + 1;
+            for ($i = 0; $i < 50; $i++) {
+                if (! $modelClass::query()->where($numberColumn, (string) $next)->exists()) {
+                    return (string) $next;
+                }
+                $next++;
+            }
+        } catch (\Throwable $e) {
+            // Any query problem → keep the ESB key; Create Order must still work.
+        }
+
+        return null;
     }
 }

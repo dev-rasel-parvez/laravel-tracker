@@ -65,6 +65,12 @@ return [
     | Set a column to "" to skip. Only fillable/forceFill attributes are written.
     */
     'order_create' => [
+        /*
+         | v1.0.14+: when your latest order number is numeric (e.g. 1132), a Dashboard-created
+         | order gets the next one (1133) instead of "ESB-L-…", and EcomSolveBD shows #1133.
+         | Non-numeric numbering (e.g. "ORD-…") keeps the ESB-L key. Set false to always keep it.
+         */
+        'sequential_number' => filter_var(env('ECOMSOLVEBD_ORDER_CREATE_SEQUENTIAL', true), FILTER_VALIDATE_BOOLEAN),
         'columns' => [
             'customer_name' => (string) env('ECOMSOLVEBD_ORDER_COL_NAME', 'customer_name'),
             'customer_phone' => (string) env('ECOMSOLVEBD_ORDER_COL_PHONE', 'customer_phone'),

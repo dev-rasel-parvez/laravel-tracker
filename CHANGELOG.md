@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.14
+
+- Dashboard **Create Order** → Laravel: when your latest order number is numeric (e.g. `1132`), the new order gets the next one (`1133`) instead of `ESB-L-…`; the reply carries `orderNumber` / `displayOrderNumber`, so EcomSolveBD shows `#1133` and status sync uses it. Non-numeric numbering keeps the ESB key. Opt out: `ECOMSOLVEBD_ORDER_CREATE_SEQUENTIAL=false`.
+
 ## v1.0.13
 
 - Every event now carries `device`, `device_model`, `browser`, `os` from the shopper's user-agent (same labels as the WooCommerce tracker), so Device & technology reports and the Device / OS with Version / Device model / Browser filters fill in for Laravel stores.
