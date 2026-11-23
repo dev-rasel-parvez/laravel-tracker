@@ -6,7 +6,7 @@ Composer package for **Laravel** storefronts → [EcomSolveBD](https://ecomsolve
 **Homepage:** https://ecomsolvebd.com/docs/integrations/custom/laravel  
 **Custom hub:** https://ecomsolvebd.com/docs/integrations/custom  
 **Source:** https://github.com/dev-rasel-parvez/laravel-tracker  
-**Latest:** `v1.0.14`
+**Latest:** `v1.0.15`
 
 ## Install
 
@@ -193,6 +193,8 @@ ECOMSOLVEBD_STATUS_OUTBOUND=true
 | Returned | `returned` |
 
 Many Laravel shops use fewer stages than SaaS — e.g. “Ready for Pickup” becomes `confirmed` in admin.
+
+Laravel admin → SaaS also accepts: `courier` → Ready for Pickup, `hold` / `on_hold` → On Hold, `waiting` → Pending, `processing` → Confirmed, `completed` → Delivered. A catch-all such as `others` is rejected (400) and leaves the SaaS status unchanged.
 
 ### Troubleshoot
 

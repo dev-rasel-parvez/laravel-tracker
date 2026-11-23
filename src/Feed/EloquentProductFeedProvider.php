@@ -111,7 +111,8 @@ final class EloquentProductFeedProvider implements ProductFeedProvider
     {
         $cols = $this->columns();
         $src = $variant ?? $parent;
-        $id = $this->attr($src, $variant ? $this->variantCol('id_column', 'id') : ($cols['id'] ?? 'id'));
+        // Integer primary keys are the norm — cast, or strict_types makes FeedCatalogProduct throw.
+        $id = trim((string) $this->attr($src, $variant ? $this->variantCol('id_column', 'id') : ($cols['id'] ?? 'id')));
         $title = XmlSafe::stripHtml((string) $this->attr(
             $src,
             $variant ? $this->variantCol('title_column', 'name') : ($cols['title'] ?? 'name')

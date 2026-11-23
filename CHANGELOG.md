@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.15
+
+- `/feed/products.xml` no longer fails (HTTP 500, `FeedCatalogProduct::__construct(): Argument #1 ($id) must be of type string, int given`) when the product id column is an integer — the usual auto-increment `id`. The other three feeds were not affected.
+- Admin → SaaS status: EcomSolveBD now also accepts the stage names many BD Laravel admins use — `courier` (booked with the courier), `hold` / `on_hold`, `waiting`, `processing`. Before, these were rejected and the SaaS status did not change. Server-side change; no package update is needed for it.
+
 ## v1.0.14
 
 - Dashboard **Create Order** → Laravel: when your latest order number is numeric (e.g. `1132`), the new order gets the next one (`1133`) instead of `ESB-L-…`; the reply carries `orderNumber` / `displayOrderNumber`, so EcomSolveBD shows `#1133` and status sync uses it. Non-numeric numbering keeps the ESB key. Opt out: `ECOMSOLVEBD_ORDER_CREATE_SEQUENTIAL=false`.
