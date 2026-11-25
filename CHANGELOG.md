@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.16
+
+- **Checkout Shield** (fraud check + SMS OTP + repeat-order timer), inert until EcomSolveBD enables it for your store:
+  - `@ecomsolvebdCheckoutShield` on the checkout Blade view — phone check on the 11th digit and a Bangla SMS-code dialog on "Place order".
+  - Validation rule `new \EcomSolveBD\LaravelTracker\Rules\CheckoutShieldPhone()` (or `app(CheckoutShield::class)->verify($phone)`) before saving the order. Fail-open: 8 s timeout, network error or unexpected answer → the order is allowed.
+
 ## v1.0.15
 
 - `/feed/products.xml` no longer fails (HTTP 500, `FeedCatalogProduct::__construct(): Argument #1 ($id) must be of type string, int given`) when the product id column is an integer — the usual auto-increment `id`. The other three feeds were not affected.

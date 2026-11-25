@@ -40,6 +40,14 @@ final class EcomSolveBdServiceProvider extends ServiceProvider
             );
         });
 
+        $this->app->singleton(CheckoutShield::class, function ($app) {
+            return new CheckoutShield(
+                (string) config('ecomsolvebd.api_base'),
+                (string) config('ecomsolvebd.merchant_key'),
+                (string) config('ecomsolvebd.deploy_env'),
+            );
+        });
+
         $this->app->singleton(EloquentProductFeedProvider::class);
     }
 
@@ -53,6 +61,11 @@ final class EcomSolveBdServiceProvider extends ServiceProvider
 
         Blade::directive('ecomsolvebdTracker', static function () {
             return "<?php echo view('ecomsolvebd::tracker')->render(); ?>";
+        });
+
+        // Checkout Shield script — checkout page only.
+        Blade::directive('ecomsolvebdCheckoutShield', static function () {
+            return "<?php echo view('ecomsolvebd::checkout-shield')->render(); ?>";
         });
 
         Blade::directive('ecomsolvebdGtag', static function () {

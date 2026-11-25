@@ -281,3 +281,20 @@ Custom / Headless hub: https://ecomsolvebd.com/docs/integrations/custom
 - Channel feeds skip items without a public `http(s)` image or price ≤ 0 (Woo parity)
 - Variation expand is not automatic — implement `ProductFeedProvider` if you need one row per variant
 - GTIN/MPN not emitted (`identifier_exists=no` on Google), same as Woo plugin
+
+## Checkout Shield (fraud check + SMS OTP)
+
+Inert until EcomSolveBD turns Checkout Shield on for your store.
+
+1. Checkout page Blade view: `@ecomsolvebdCheckoutShield` (phone check on the 11th digit + Bangla SMS-code dialog on "Place order").
+2. Before saving the order (the real gate — cannot be bypassed from the browser):
+
+```php
+use EcomSolveBD\LaravelTracker\Rules\CheckoutShieldPhone;
+
+$request->validate(['phone' => ['required', new CheckoutShieldPhone()]]);
+// or: $r = app(\EcomSolveBD\LaravelTracker\CheckoutShield::class)->verify($phone); if (! $r['allow']) …
+```
+
+Fail-open: 8 s timeout / network error / unexpected answer → the order is allowed. Only the store's own rules
+(SMS code needed, repeat-order timer) return `allow = false` with a Bangla `message`.
