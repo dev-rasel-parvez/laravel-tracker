@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.17
+
+- **Checkout Drop — full checkout form.** `@ecomsolvebdTracker` now also keeps what the shopper typed on your checkout (full delivery address, district, thana / area, postcode, order note and your own extra fields), not only name and phone. "Place order" on Checkout Drop in the EcomSolveBD dashboard opens the order form already filled in. Works with any checkout markup (one "full address" box or separate district / thana fields, `<form>` or not). Passwords, card numbers, security / OTP codes, coupons and hidden inputs are never read; nothing is sent until a phone number or email is typed. No code change needed — `composer update ecomsolvebd/laravel-tracker`.
+
 ## v1.0.16
 
 - **Checkout Shield** (fraud check + SMS OTP + repeat-order timer), inert until EcomSolveBD enables it for your store:

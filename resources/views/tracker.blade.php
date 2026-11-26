@@ -329,4 +329,5 @@
 })();
 </script>
 @include('ecomsolvebd::funnel-auto')
+@include('ecomsolvebd::checkout-snapshot')
 @endif
